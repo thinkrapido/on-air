@@ -5,6 +5,7 @@ use hidapi::HidApi;
 
 const SIZE: usize = 25;
 
+const OFF:      [u8; 24] = [0x00; 24];
 const RED:      [u8;  3] = [0x00, 0xff, 0x00];
 const GREEN:    [u8;  3] = [0xff, 0x00, 0x00];
 const BLUE:     [u8;  3] = [0x00, 0x00, 0xff];
@@ -22,6 +23,7 @@ fn main() -> anyhow::Result<()> {
     //warning(&mut buf, &BLUE);
     warning(&mut buf, &WHITE);
     //off(&mut buf);
+    cam_off(&mut buf);
 
     device.write(&buf)?;
 
@@ -48,8 +50,16 @@ fn warning(buf: &mut [u8], color: &[u8]) {
         std::ptr::copy_nonoverlapping(color as *const _ as *const u8, &mut buf[22..] as *mut _ as *mut u8, 3); 
     };
 }
+fn cam_off(buf: &mut [u8]) {
+    cam(buf, &OFF[..3]);
+}
+fn mike_off(buf: &mut [u8]) {
+    mike(buf, &OFF[..3]);
+}
+fn warning_off(buf: &mut [u8]) {
+    warning(buf, &OFF[..3]);
+}
 fn off(buf: &mut [u8]) {
-    const OFF:      [u8; 24] = [0x00; 24];
     unsafe {
         std::ptr::copy_nonoverlapping(&OFF as *const _ as *const u8, &mut buf[1..] as *mut _ as *mut u8, 24);
     }
