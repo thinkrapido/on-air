@@ -15,22 +15,14 @@ fn main() -> anyhow::Result<()> {
 
             let handle = device.open()?;
 
-            // println!("read");
-            // read(&handle, SIZE)?;
-            // for i in 0..SIZE {
-            //     match read(&handle, i) {
-            //         Ok(_) => println!("success: {i}"),
-            //         Err(_) => print!("{i}."),
-            //     };
-            // }
+            println!("read");
+            for i in 0..SIZE {
+                result_output(i, read(&handle, i));
+            }
 
             println!("write");
-            //write(&handle, SIZE)?;
             for i in 0..SIZE {
-                match write(&handle, i) {
-                    Ok(_) => println!("success: {i}"),
-                    Err(err) => println!("{i}. {err:?}"),
-                };
+                result_output(i, write(&handle, i));
             }
 
             println!("finished");
@@ -75,3 +67,10 @@ fn write(handle: &DeviceHandle<GlobalContext>, i: usize) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn result_output(i: usize, result: anyhow::Result<()>) {
+    match result {
+        Ok(_) => println!("success: {i}"),
+        Err(err) => print!("{i:2}. {err:?}\t"),
+    };
+    if i % 4 == 3 { println!(""); }
+}
