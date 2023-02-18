@@ -1,76 +1,59 @@
-use rusb::{DeviceList, GlobalContext, DeviceHandle};
 
+#![allow(dead_code)]
 
+use hidapi::HidApi;
 
+const SIZE: usize = 25;
 
+const RED:      [u8;  3] = [0x00, 0xff, 0x00];
+const GREEN:    [u8;  3] = [0xff, 0x00, 0x00];
+const BLUE:     [u8;  3] = [0x00, 0x00, 0xff];
+const WHITE:    [u8;  3] = [0xff, 0xff, 0xff];
 
 fn main() -> anyhow::Result<()> {
+
+    let api = HidApi::new()?;
+    let device = api.open(0x5131, 0x2007)?;
+
+    let mut buf: [u8; SIZE] = [0u8; SIZE];
     
-    let device_list = DeviceList::new()?;
+    cam(&mut buf, &RED);
+    mike(&mut buf, &GREEN);
+    //warning(&mut buf, &BLUE);
+    warning(&mut buf, &WHITE);
+    //off(&mut buf);
 
-    for device in device_list.iter() {
-
-        let descriptor = device.device_descriptor()?;
-        if let (0x5131, 0x2007) = (descriptor.vendor_id(), descriptor.product_id()) {
-
-            let handle = device.open()?;
-
-            println!("read");
-            for i in 0..SIZE {
-                result_output(i, read(&handle, i));
-            }
-
-            println!("write");
-            for i in 0..SIZE {
-                result_output(i, write(&handle, i));
-            }
-
-            println!("finished");
-
-            break;
-        }
-
-    }
+    device.write(&buf)?;
 
     Ok(())
 }
 
-const SIZE: usize = 64;
-
-fn read(handle: &DeviceHandle<GlobalContext>, i: usize) -> anyhow::Result<()> {
-
-    let endpoint = 0x82u8;
-    let mut buf: [u8; SIZE] = [0; SIZE];
-
-    let bytes_read = handle.read_bulk(
-        endpoint, 
-        &mut buf[..i], 
-        std::time::Duration::from_secs(1))?;
-
-    println!("bytes read {bytes_read}");
-
-    Ok(())
-}
-
-fn write(handle: &DeviceHandle<GlobalContext>, i: usize) -> anyhow::Result<()> {
-
-    let endpoint = 0x02u8;
-    let buf: [u8; SIZE] = [0u8; SIZE];
-
-    let bytes_written = handle.write_interrupt(
-        endpoint, 
-        &buf[..i], 
-        std::time::Duration::from_secs(1))?;
-
-    println!("bytes written {bytes_written}");
-
-    Ok(())
-}
-
-fn result_output(i: usize, result: anyhow::Result<()>) {
-    match result {
-        Ok(_) => println!("success: {i}"),
-        Err(err) => print!("{i:2}. {err:?}\t"),
+fn cam(buf: &mut [u8], color: &[u8]) {
+    unsafe { 
+        std::ptr::copy_nonoverlapping(color as *const _ as *const u8, &mut buf[16..] as *mut _ as *mut u8, 3);
+        std::ptr::copy_nonoverlapping(color as *const _ as *const u8, &mut buf[19..] as *mut _ as *mut u8, 3); 
     };
-    if i % 4 == 3 { println!(""); }
 }
+fn mike(buf: &mut [u8], color: &[u8]) {
+    unsafe { 
+        std::ptr::copy_nonoverlapping(color as *const _ as *const u8, &mut buf[4..] as *mut _ as *mut u8, 3);
+        std::ptr::copy_nonoverlapping(color as *const _ as *const u8, &mut buf[7..] as *mut _ as *mut u8, 3); 
+    };
+}
+fn warning(buf: &mut [u8], color: &[u8]) {
+    unsafe { 
+        std::ptr::copy_nonoverlapping(color as *const _ as *const u8, &mut buf[1..] as *mut _ as *mut u8, 3);
+        std::ptr::copy_nonoverlapping(color as *const _ as *const u8, &mut buf[10..] as *mut _ as *mut u8, 3); 
+        std::ptr::copy_nonoverlapping(color as *const _ as *const u8, &mut buf[13..] as *mut _ as *mut u8, 3);
+        std::ptr::copy_nonoverlapping(color as *const _ as *const u8, &mut buf[22..] as *mut _ as *mut u8, 3); 
+    };
+}
+fn off(buf: &mut [u8]) {
+    const OFF:      [u8; 24] = [0x00; 24];
+    unsafe {
+        std::ptr::copy_nonoverlapping(&OFF as *const _ as *const u8, &mut buf[1..] as *mut _ as *mut u8, 24);
+    }
+}
+
+
+
