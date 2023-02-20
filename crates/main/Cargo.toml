@@ -1,0 +1,12 @@
+[package]
+name = "sniff-on-air"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.69"
+nokhwa = { version = "0.10.3", features = ["input-v4l", "input-msmf", "input-avfoundation"] }
+
+on-air = { path = "../on-air" }
