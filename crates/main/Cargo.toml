@@ -1,5 +1,5 @@
 [package]
-name = "sniff-on-air"
+name = "on-air-warning"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,4 +9,4 @@ edition = "2021"
 anyhow = "1.0.69"
 nokhwa = { version = "0.10.3", features = ["input-v4l", "input-msmf", "input-avfoundation"] }
 
-on-air = { path = "../on-air" }
+on-air-lib = { path = "../lib" }
