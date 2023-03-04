@@ -7,22 +7,32 @@ extern crate log;
 fn main() -> anyhow::Result<()> {
     env_logger::init();
 
+    #[cfg(target_os = "linux")]
+    on_air_warning_linux::start(main_loop)?;
+    #[cfg(target_os = "macos")]
+    on_air_warning_macos::start(main_loop)?;
+    #[cfg(target_os = "windows")]
+    on_air_warning_windows::start(main_loop)?;
+
+    #[allow(unreachable_code)]
+    Ok(())
+}
+
+fn main_loop() -> anyhow::Result<()> {
     loop {
         let mut is_streaming = false;
 
         {
             for idx in 0..4u32 {
+                #[allow(clippy::single_match)]
                 match Camera::new(
                     nokhwa::utils::CameraIndex::Index(idx),
                     RequestedFormat::new::<LumaFormat>(nokhwa::utils::RequestedFormatType::None),
                 ) {
                     #[cfg(target_os = "windows")]
-                    Ok(mut cam) => match cam.frame() {
-                        Err(NokhwaError::ReadFrameError(..)) => {
-                            is_streaming = true;
-                            break;
-                        }
-                        _ => {}
+                    Ok(mut cam) => if let Err(NokhwaError::ReadFrameError(..)) = cam.frame() {
+                        is_streaming = true;
+                        break;
                     },
                     #[cfg(target_os = "unix")]
                     Err(NokhwaError::SetPropertyError { .. }) => {
@@ -45,6 +55,4 @@ fn main() -> anyhow::Result<()> {
         std::thread::sleep(std::time::Duration::from_secs(1));
     }
 
-    #[allow(unreachable_code)]
-    Ok(())
 }

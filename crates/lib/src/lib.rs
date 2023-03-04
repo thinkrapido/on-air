@@ -81,7 +81,8 @@ pub fn off(buf: &mut [u8]) {
     }
 }
 
-pub fn air(f: Box<dyn FnOnce(&mut [u8])>) -> anyhow::Result<()> {
+type AirFn = Box<dyn FnOnce(&mut [u8])>;
+pub fn air(f: AirFn) -> anyhow::Result<()> {
     let api = HidApi::new()?;
 
     if let Ok(device) = api.open(0x5131, 0x2007) {

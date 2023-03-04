@@ -3,4 +3,7 @@
 members = [
     "crates/lib",
     "crates/main",
+    "crates/linux",
+    "crates/macos",
+    "crates/windows",
 ]

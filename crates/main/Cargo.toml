@@ -12,3 +12,6 @@ log = "0.4.17"
 nokhwa = { version = "0.10.3", features = ["input-v4l", "input-msmf", "input-avfoundation"] }
 
 on-air-lib = { path = "../lib" }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+on-air-warning-windows = { path = "../windows" }
